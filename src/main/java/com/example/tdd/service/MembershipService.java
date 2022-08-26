@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,5 +52,20 @@ public class MembershipService {
                 .createdAt(membership.getCreatedAt())
                 .build())
             .collect(Collectors.toList());
+    }
+
+    public MembershipDetailResponse getMembership(final Long membershipId, final String userId) {
+        final Optional<Membership> membershipOpt = membershipRepository.findById(membershipId);
+        final Membership membership = membershipOpt.orElseThrow(() -> new MembershipException(MembershipErrorResult.MEMBERSHIP_NOT_FOUND));
+        if (membership.getUserId() != userId) {
+            throw new MembershipException(MembershipErrorResult.NOT_MEMBERSHIP_OWNER);
+        }
+
+        return MembershipDetailResponse.builder()
+            .id(membership.getId())
+            .membershipType(membership.getMembershipType())
+            .point(membership.getPoint())
+            .createdAt(membership.getCreatedAt())
+            .build();
     }
 }
