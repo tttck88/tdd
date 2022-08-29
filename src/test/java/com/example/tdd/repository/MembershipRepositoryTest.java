@@ -100,6 +100,23 @@ public class MembershipRepositoryTest {
         // then
         assertThat(result.size()).isEqualTo(2);
     }
+    
+    @Test
+    public void 멤버십추가후삭제() {
+        // given
+        final Membership membership = Membership.builder()
+            .userId("userId")
+            .membershipType(MembershipType.NAVER)
+            .point(10000)
+            .build();
+
+        final Membership resultMembership = membershipRepository.save(membership);
+        
+        // when
+        membershipRepository.deleteById(resultMembership.getId());
+        
+        // then
+    }
 }
 
 

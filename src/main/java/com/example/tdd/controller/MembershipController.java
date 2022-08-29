@@ -45,4 +45,23 @@ public class MembershipController {
     ) {
         return ResponseEntity.ok(membershipService.getMembership(membershipId,userId));
     }
+
+    @DeleteMapping("/api/v1/memberships/{membershipId}")
+    public ResponseEntity<MembershipDetailResponse> deleteMembership(
+        @RequestHeader(USER_ID_HEADER) final String userId
+        , @PathVariable final Long membershipId
+    ) {
+        membershipService.removeMembership(membershipId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/api/v1/memberships/{id}/accumulate")
+    public ResponseEntity<MembershipDetailResponse> accumulateMembershipPoint(
+        @RequestHeader(USER_ID_HEADER) final String userId
+        , @PathVariable final Long id
+        , @RequestBody @Valid final MembershipRequest membershipRequest) {
+
+        membershipService.accumulateMembershipPoint(id, userId, membershipRequest.getPoint());
+        return ResponseEntity.noContent().build();
+    }
 }

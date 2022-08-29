@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Member;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +30,8 @@ public class MembershipServiceTest {
     private MembershipService target;
     @Mock
     private MembershipRepository membershipRepository;
+    @Mock
+    private RatePointService ratePointService;
 
     private final String userId = "userId";
     private final MembershipType membershipType = MembershipType.NAVER;
@@ -128,4 +131,90 @@ public class MembershipServiceTest {
                 .membershipType(MembershipType.NAVER)
                 .build();
     }
+
+    @Test
+    public void 멤버십삭제실패_존재하지않음() {
+        // given
+        doReturn(Optional.empty()).when(membershipRepository).findById(membershipId);
+        
+        // when
+        final MembershipException result = assertThrows(MembershipException.class, () -> target.removeMembership(membershipId, userId));
+        
+        // then
+        assertThat(result.getErrorResult()).isEqualTo(MembershipErrorResult.MEMBERSHIP_NOT_FOUND);
+    }
+    
+    @Test
+    public void 멤버십삭제실패_본인이아님() {
+        // given
+        doReturn(Optional.of(membership())).when(membershipRepository).findById(membershipId);
+        
+        // when
+        final MembershipException result = assertThrows(MembershipException.class, () -> target.removeMembership(membershipId, "nowOwner"));
+        
+        // then
+        assertThat(result.getErrorResult()).isEqualTo(MembershipErrorResult.NOT_MEMBERSHIP_OWNER);
+    }
+    
+    @Test
+    public void 멤버십삭제성공() {
+        // given
+        final Membership membership = membership();
+        doReturn(Optional.of(membership)).when(membershipRepository).findById(membershipId);
+        
+        // when
+        target.removeMembership(membershipId, userId);
+        
+        // then
+    }
+    
+    @Test
+    public void 멤버십적립실패_존재하지않음() {
+        // given
+        doReturn(Optional.empty()).when(membershipRepository).findById(membershipId);
+
+        // when
+        final MembershipException result = assertThrows(MembershipException.class, () -> target.accumulateMembershipPoint(membershipId, userId, 10000));
+        
+        // then
+        assertThat(result.getErrorResult()).isEqualTo(MembershipErrorResult.MEMBERSHIP_NOT_FOUND);
+    }
+    
+    @Test
+    public void 멤버십적립실패_본인이아님() {
+        // given
+        doReturn(Optional.of(membership())).when(membershipRepository).findById(membershipId);
+        
+        // when
+        final MembershipException result = assertThrows(MembershipException.class, () -> target.accumulateMembershipPoint(membershipId, "notowner", 10000));
+        
+        // then
+        assertThat(result.getErrorResult()).isEqualTo(MembershipErrorResult.NOT_MEMBERSHIP_OWNER);
+    }
+    
+    @Test
+    public void 멤버십적립성공() {
+        // given
+        doReturn(Optional.of(membership())).when(membershipRepository).findById(membershipId);
+
+        // when
+        target.accumulateMembershipPoint(membershipId, userId, 10000);
+
+        // then
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
